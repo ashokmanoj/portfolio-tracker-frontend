@@ -1,25 +1,37 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import Dashboard from "./components/Dashboard";
+import StockForm from "./components/StockForm";
+import StockTable from "./components/StockTable";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    const [stocks, setStocks] = useState([]);
+    const [totalValue, setTotalValue] = useState(0);
+
+    const addStock = (stock) => {
+        setStocks([...stocks, { ...stock, id: Date.now() }]);
+        calculateTotalValue([...stocks, stock]);
+    };
+
+    const deleteStock = (id) => {
+        const updatedStocks = stocks.filter((stock) => stock.id !== id);
+        setStocks(updatedStocks);
+        calculateTotalValue(updatedStocks);
+    };
+
+    const calculateTotalValue = (stocks) => {
+        const value = stocks.reduce((sum, stock) => sum + stock.quantity * stock.buyPrice, 0);
+        setTotalValue(value);
+    };
+
+    return (
+        <div className="p-10 bg-gray-100 min-h-screen">
+            <Dashboard totalValue={totalValue} topStock="Sample Stock" />
+            <div className="mt-6 grid grid-cols-2 gap-10">
+                <StockForm onSubmit={addStock} />
+                <StockTable stocks={stocks} onDelete={deleteStock} />
+            </div>
+        </div>
+    );
 }
 
 export default App;
