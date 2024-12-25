@@ -1,79 +1,80 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
+import axios from 'axios';
 
-const StockForm = ({ onSubmit }) => {
-    const [stock, setStock] = useState({
-        name: "",
-        ticker: "",
-        quantity: "",
-        buyPrice: "",
-    });
+const StockForm = ({ isEditing, stock, onStockAdded, onStockUpdated }) => {
+  const [name, setName] = useState(isEditing ? stock.name : '');
+  const [ticker, setTicker] = useState(isEditing ? stock.ticker : '');
+  const [quantity, setQuantity] = useState(isEditing ? stock.quantity : 1); 
+  const [buyPrice, setBuyPrice] = useState(isEditing ? stock.buyPrice : '');
 
-    const handleChange = (e) => {
-        setStock({ ...stock, [e.target.name]: e.target.value });
-    };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit(stock);
-        setStock({ name: "", ticker: "", quantity: "", buyPrice: "" });
-    };
+    try {
+      const newStock = { name, ticker, quantity, buyPrice };
 
-    return (
-        <form className="p-6 bg-white rounded-md shadow-md" onSubmit={handleSubmit}>
-            <h2 className="text-2xl font-bold text-gray-700 mb-4">Add Stock</h2>
-            <div className="mb-4">
-                <label className="block text-sm text-gray-600">Stock Name</label>
-                <input
-                    type="text"
-                    name="name"
-                    value={stock.name}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block text-sm text-gray-600">Ticker</label>
-                <input
-                    type="text"
-                    name="ticker"
-                    value={stock.ticker}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block text-sm text-gray-600">Quantity</label>
-                <input
-                    type="number"
-                    name="quantity"
-                    value={stock.quantity}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                />
-            </div>
-            <div className="mb-4">
-                <label className="block text-sm text-gray-600">Buy Price</label>
-                <input
-                    type="number"
-                    step="0.01"
-                    name="buyPrice"
-                    value={stock.buyPrice}
-                    onChange={handleChange}
-                    className="w-full p-2 border border-gray-300 rounded"
-                    required
-                />
-            </div>
-            <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-                Add Stock
-            </button>
-        </form>
-    );
+      if (isEditing) {
+        await axios.put(`/api/stocks/${stock.id}`, newStock);
+        onStockUpdated();
+      } else {
+        const response = await axios.post('/api/stocks', newStock);
+        onStockAdded(response.data);
+      }
+
+      // Clear form fields after successful submission
+      setName('');
+      setTicker('');
+      setQuantity(1); 
+      setBuyPrice('');
+
+    } catch (error) {
+      console.error('Error submitting stock:', error);
+      // Handle the error (e.g., display an error message to the user)
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label htmlFor="name">Name:</label>
+        <input 
+          type="text" 
+          id="name" 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+        />
+      </div>
+      <div>
+        <label htmlFor="ticker">Ticker:</label>
+        <input 
+          type="text" 
+          id="ticker" 
+          value={ticker} 
+          onChange={(e) => setTicker(e.target.value)} 
+        />
+      </div>
+      <div>
+        <label htmlFor="quantity">Quantity:</label>
+        <input 
+          type="number" 
+          id="quantity" 
+          value={quantity} 
+          onChange={(e) => setQuantity(parseInt(e.target.value))} 
+        />
+      </div>
+      <div>
+        <label htmlFor="buyPrice">Buy Price:</label>
+        <input 
+          type="number" 
+          id="buyPrice" 
+          step="0.01" 
+          value={buyPrice} 
+          onChange={(e) => setBuyPrice(parseFloat(e.target.value))} 
+        />
+      </div>
+      <button type="submit">{isEditing ? 'Update' : 'Add'}</button>
+    </form>
+  );
 };
 
 export default StockForm;

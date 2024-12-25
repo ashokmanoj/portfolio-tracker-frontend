@@ -1,37 +1,34 @@
-import React, { useState } from "react";
-import Dashboard from "./components/Dashboard";
-import StockForm from "./components/StockForm";
-import StockTable from "./components/StockTable";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './AuthContext';
+import Dashboard from './components/Dashboard';
+import StockList from './components/StockList';
+import Login from './components/Login';
+import Register from './components/Register'; 
+import { useAuth } from './AuthContext'; 
 
 function App() {
-    const [stocks, setStocks] = useState([]);
-    const [totalValue, setTotalValue] = useState(0);
+  const { user } = useAuth();
 
-    const addStock = (stock) => {
-        setStocks([...stocks, { ...stock, id: Date.now() }]);
-        calculateTotalValue([...stocks, stock]);
-    };
-
-    const deleteStock = (id) => {
-        const updatedStocks = stocks.filter((stock) => stock.id !== id);
-        setStocks(updatedStocks);
-        calculateTotalValue(updatedStocks);
-    };
-
-    const calculateTotalValue = (stocks) => {
-        const value = stocks.reduce((sum, stock) => sum + stock.quantity * stock.buyPrice, 0);
-        setTotalValue(value);
-    };
-
-    return (
-        <div className="p-10 bg-gray-100 min-h-screen">
-            <Dashboard totalValue={totalValue} topStock="Sample Stock" />
-            <div className="mt-6 grid grid-cols-2 gap-10">
-                <StockForm onSubmit={addStock} />
-                <StockTable stocks={stocks} onDelete={deleteStock} />
-            </div>
-        </div>
-    );
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Login />} /> 
+          <Route path="/register" element={<Register />} /> 
+          <Route 
+            path="/dashboard" 
+            element={user ? <Dashboard /> : <Navigate to="/" />} 
+          /> 
+          <Route 
+            path="/stocks" 
+            element={user ? <StockList /> : <Navigate to="/" />} 
+          /> 
+          {/* ... other routes ... */}
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
 }
 
 export default App;
