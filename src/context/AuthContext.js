@@ -10,10 +10,23 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       // Verify the token with the backend (optional)
-      // You can make a protected API call here 
-      // to verify the token with the backend.
+      const verifyToken = async () => {
+        try {
+          const response = await axios.get('/api/auth/verify', { 
+            headers: {
+              Authorization: `Bearer ${storedToken}` 
+            }
+          }); 
+          if (response.status === 200) { 
+            setUser({ token: storedToken }); 
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          localStorage.removeItem('token'); 
+        }
+      };
 
-      setUser({ token: storedToken }); 
+      verifyToken(); 
     }
   }, []);
 
@@ -25,7 +38,7 @@ export const AuthProvider = ({ children }) => {
       setUser({ token }); 
     } catch (error) {
       console.error('Login failed:', error);
-      throw error; // Re-throw the error to be handled by the calling component
+      throw error; 
     }
   };
 
